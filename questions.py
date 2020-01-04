@@ -33,10 +33,10 @@ from random import shuffle
 
 def mlp_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect):
     grid_search_parameters = {
-        'hidden_layer_sizes': [(100,)],
-        'activation': ['relu'],
-        'solver': ['adam'],
-        'alpha': [0.05],
+        'hidden_layer_sizes': [(100,), (100,50,100)],
+        'activation': ['identity', 'logistic', 'relu', 'tanh'],
+        'solver': ['adam', 'sgd', 'lbfgs'],
+        'alpha': [0.05, 0.01],
         'learning_rate': ['adaptive']
     }
 
@@ -217,53 +217,64 @@ def train_model():
     # Fold the data between training and testing data K times 
     # Train 5 different models with different grid search parameters
     # Compare results
-    for i in range(10):
+    # for i in range(10):
         #K-fold the dataset into different training and testing dataset
-        training_data, training_labels, testing_data, testing_labels, tfidf_vect = load_nps_chat_data(randomSeed = 42*i)
-        
-        # 1.Random Forest classifier    
-        classifier, actuals, predictions = randomForest_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
-        file_name = f'{file_path}\\models\\randomForest.sav'
-        pickle.dump(classifier, open(file_name, 'wb'))
+    training_data, training_labels, testing_data, testing_labels, tfidf_vect = load_nps_chat_data(randomSeed = 42)
+    
+    classifier, actuals, predictions = mlp_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
+    file_name = os.path.join(file_path, 'models')
+    mlp = os.path.join(file_name,'mlp.sav')
+    
+    pickle.dump(classifier, open(mlp, 'wb'))
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
+    plot.plot(false_positive_rate, true_positive_rate, marker='.', label='MLP ANN')
 
-        false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
-        plot.plot(false_positive_rate, true_positive_rate, marker='.', label='Random Forest')
+    # 1.Random Forest classifier    
+    classifier, actuals, predictions = randomForest_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
+    
+    randomForest = os.path.join(file_name, 'randomForest.sav')
+    pickle.dump(classifier, open(randomForest, 'wb'))
 
-        # 2. Naive Bayes classifier   
-        classifier, actuals, predictions = naiveBayes_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
-        file_name = f'{file_path}\\models\\naiveBayest.sav'
-        pickle.dump(classifier, open(file_name, 'wb'))
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
+    plot.plot(false_positive_rate, true_positive_rate, marker='.', label='Random Forest')
 
-        false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
-        plot.plot(false_positive_rate, true_positive_rate, marker='.', label='Naive Bayes')
+    # 2. Naive Bayes classifier   
+    classifier, actuals, predictions = naiveBayes_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
+    naiveB = os.path.join(file_name, 'naiveBayes.sav')
+    pickle.dump(classifier, open(naiveB, 'wb'))
 
-        # 3. Decision Tree classifier
-        classifier, actuals, predictions = decisionTree_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
-        file_name = f'{file_path}\\models\\decisionTree.sav'
-        pickle.dump(classifier, open(file_name, 'wb'))
-        false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
-        plot.plot(false_positive_rate, true_positive_rate, marker='.', label='Decision Tree')
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
+    plot.plot(false_positive_rate, true_positive_rate, marker='.', label='Naive Bayes')
 
-        # 4. SVM classifier
-        svm_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
-        file_name = f'{file_path}\\models\\svm.sav'
-        pickle.dump(classifier, open(file_name, 'wb'))
-        false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
-        plot.plot(false_positive_rate, true_positive_rate, marker='.', label='SVM')
-        
-        # 5. Logistic Regression classifier
-        classifier, actuals, predictions = logisticRegression_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)  
-        file_name = f'{file_path}\\models\\logisticRegression.sav'
-        pickle.dump(classifier, open(file_name, 'wb'))
-        false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
-        plot.plot(false_positive_rate, true_positive_rate, marker='.', label='Logistic Regression')
+    # 3. Decision Tree classifier
+    classifier, actuals, predictions = decisionTree_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
+    decisionTree = os.path.join(file_name,'decisionTree.sav')
+    pickle.dump(classifier, open(decisionTree, 'wb'))
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
+    plot.plot(false_positive_rate, true_positive_rate, marker='.', label='Decision Tree')
 
-        # 6. MLP ANN classifier
-        classifier, actuals, predictions = mlp_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
-        file_name = f'{file_path}\\models\\mlp.sav'
-        pickle.dump(classifier, open(file_name, 'wb'))
-        false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
-        plot.plot(false_positive_rate, true_positive_rate, marker='.', label='MLP ANN')
+    # 4. SVM classifier
+    svm_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
+    svm = os.path.join(file_name,'svm.sav')
+    pickle.dump(classifier, open(svm, 'wb'))
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
+    plot.plot(false_positive_rate, true_positive_rate, marker='.', label='SVM')
+    
+    # 5. Logistic Regression classifier
+    classifier, actuals, predictions = logisticRegression_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)  
+    logisticR = os.path.join(file_name,'logisticRegression.sav')
+    
+    pickle.dump(classifier, open(logisticR, 'wb'))
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
+    plot.plot(false_positive_rate, true_positive_rate, marker='.', label='Logistic Regression')
+
+    # 6. MLP ANN classifier
+    # classifier, actuals, predictions = mlp_TrainedModel(training_data, training_labels, testing_data, testing_labels, tfidf_vect)
+    # mlp = os.path.join(file_name,'mlp.sav')
+    
+    # pickle.dump(classifier, open(mlp, 'wb'))
+    # false_positive_rate, true_positive_rate, thresholds = roc_curve(actuals, predictions)
+    # plot.plot(false_positive_rate, true_positive_rate, marker='.', label='MLP ANN')
     
     # axis labels
     plot.xlabel('False Positive Rate')
@@ -283,7 +294,7 @@ def get_features(data):
 def get_Model():
     training_data, training_labels, testing_data, testing_labels, tfidf_vect = load_nps_chat_data(randomSeed=42)
     file_path = dirname(os.path.realpath(__file__))
-    file_name = f'{file_path}\\models\\svm.sav'
+    file_name = os.path.join(file_path, 'models', 'svm.sav')
     model = pickle.load(open(file_name, 'rb'))
     result = model.predict(testing_data)
     return model, tfidf_vect

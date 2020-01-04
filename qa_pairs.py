@@ -25,14 +25,9 @@ def qa_pairs():
             sentences.append(sentence.raw)
     number = len(sentences)
     model, tfidf_vect = get_Model()
-
-    # print(f'Question: what is the process to get a new hire onboarded?')
-    # print(f'Chosen answer by cosine sim: The new hire goes through a dedicated weeklong onboarding process with HR - see details here -')
-    # print(f'Chosen answer by eucledean sim: {email_dataFrame[index+ind2]}')
     detected_questions = []
     for index, each in enumerate(sentences):
         isQ = isQuestion(each, model, tfidf_vect)
-        # print(f'{each} is a question - {isQ}')        
         if isQ and index+10 < number:
             detected_questions.append(each)
             candidateSentences= sentences[index:index+10]
@@ -94,7 +89,8 @@ def get_Index_Of_Closest(cosine_sim):
 # credit and referenced from https://github.com/anthdm/ml-email-clustering
 def read_email_data():
     file_path = dirname(os.path.realpath(__file__))
-    emails_data = pd.read_csv(f'{file_path}\\data\\split_emails.csv')
+    file_name = os.path.join(file_path, 'data', 'split_emails.csv')
+    emails_data = pd.read_csv(f'{file_name}')
     email_dataFrame = pd.DataFrame(parse_into_emails(emails_data.message))
     email_dataFrame.drop(email_dataFrame.query("body == '' | to == '' | from_ == ''").index, inplace=True)
     email_dataFrame.drop_duplicates(inplace=True)
