@@ -1,3 +1,5 @@
+Autodocs
+
 The project contains 4 main python modules
 1) questions.py - This file contains code to train a model for classifying a sentence as a question. The code here attempts training over 6 different models and tries grid search and Kfolding of data to achieve the best AUC score for a model. It also prints out the confusion matrix, classification report containing accuracy, precision and recall. It also plots the ROC curve for each of the 6 models being compared. It finally saves the best trained models into the models/{model_name}.sav file for use later
 2) sentence_embed.py - This file loads facebook's infersent model and creates a vector embedding for a given set of sentences. Usually the question and canidate answers are passed to this method and it returns the cosine similarity and euclidean similarity between these sentences
